@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bar Graph</title>
+</head>
+
+<body>
+
+    <canvas id="chart" width="800" height="400"></canvas>
+
+    <script>
+
+
+        let title;
+        let priority;
+        let dateCreated;
+        let startDate;
+        let endDate;
+        let myCanvas = document.getElementById('chart');
+        // myCanvas.width = 300;
+        // myCanvas.height = 300;
+
+        let ctx = myCanvas.getContext('2d');
+
+        function drawLine(ctx, startX, startY, endX, endY, color) {
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawBar(ctx, upperLeftCornerX, upperLeftCornerY, width, height, color) {
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.fillRect(upperLeftCornerX, upperLeftCornerY, width, height);
+            ctx.restore();
+        }
+
+        let charData = {
+            Title: title,
+            Priority: priority,
+            DateCreated: dateCreated,
+        }
+
+        let Barchart = function (options) {
+            this.options = options;
+            this.canvas = options.canvas;
+            this.ctx = this.canvas.getContext("2d");
+            this.colors = options.colors;
+
+            this.draw = function () {
+                let maxValue = 0;
+                for (let categ in this.options.data) {
+                    maxValue = Math.max(maxValue, this.options.data[categ]);
+                }
+                let canvasActualHeight = this.canvas.height - this.options.padding * 2;
+                let canvasActualWidth = this.canvas.width - this.options.padding * 2;
+
+                let gridValue = 0;
+                while (gridValue <= maxValue) {
+                    let gridY = canvasActualHeight * (1 - gridValue / maxValue) + this.options.padding;
+                    drawLine(
+                        this.ctx,
+                        0,
+                        gridY,
+                        this.canvas.width,
+                        gridY,
+                        this.options.gridColor
+                    );
+
+                    this.ctx.save();
+                    this.ctx.fillStyle = this.options.gridColor;
+                    this.ctx.font = "bold 10px Arial";
+                    this.ctx.fillText(gridValue, 10, gridY - 2);
+                    this.ctx.restore();
+
+                    gridValue += this.options.gridScale;
+                }
+
+                let barIndex = 0;
+                let numberOfBars = Object.keys(this.options.data).length;
+                let barSize = (canvasActualWidth) / numberOfBars;
+
+                for (categ in this.options.data) {
+                    let val = this.options.data[categ];
+                    let barHeight = Math.round(canvasActualHeight * val / maxValue);
+                    drawBar(
+                        this.ctx,
+                        this.options.padding + barIndex * barSize,
+                        this.canvas.height - barHeight - this.options.padding,
+                        barSize,
+                        barHeight,
+                        this.colors[barIndex % this.colors.length]
+                    );
+
+                    barIndex++;
+                }
+
+            }
+        };
+
+        let myBarchart = new Barchart(
+            {
+                canvas: myCanvas,
+                padding: 10,
+                gridScale: 5,
+                gridColor: "#eeeeee",
+                data: charData,
+                colors: ["#a55ca5", "#67b6c7", "#bccd7a", "#eb9743"]
+            }
+        );
+
+        myBarchart.draw();
+
+        async function getData() {
+            const response = await fetch('card_data_v2.csv');
+            const data = await response.text();
+
+            const table = data.split('\n').slice(1);
+            table.forEach(row => {
+                const columns = row.split(',');
+                title = columns[0];
+                priority = columns[1];
+                dateCreated = columns[2];
+                startDate = columns[3];
+                endDate = columns[4];
+            })
+        };
+        getData();
+    </script>
+</body>
+
+</html>
