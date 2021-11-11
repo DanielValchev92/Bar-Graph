@@ -22,9 +22,9 @@ function drawBar(ctx, upperLeftCornerX, upperLeftCornerY, width, height, color) 
 }
 
 let charData = {
-    Classic: 10,
-    Opera: 20,
-    Modern: 30,
+    Alfa: 10,
+    Beta: 20,
+    Gamma: 30,
 }
 
 let Barchart = function (options) {
